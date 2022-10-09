@@ -4,7 +4,7 @@ from dpr import core
 import time
 from dpr import utils
 st.sidebar.markdown("# Multiple Documents")
-st.markdown("Multiple Documents question answering")
+st.markdown("# Multiple Documents question answering")
 
 st.markdown("""
             This page is slighly different from previous one. Now, you dont specify a document.
