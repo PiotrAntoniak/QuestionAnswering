@@ -1,0 +1,12 @@
+streamlit>=1.12.2
+numpy>=1.18.1
+pandas>=1.0.1
+wikipedia>=1.4.0
+pdfminer
+pdfplumber>=0.7.4
+torch>=1.12.1
+transformers>=4.21.2
+tokenizers>=0.12.1
+scipy>=1.4.1
+scikit-learn>=0.22.1
+click==8
