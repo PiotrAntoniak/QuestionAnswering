@@ -2,9 +2,9 @@
  question asnwering with webbrowser GUI
 
 #### Steps to make it work:
-- Fork repo,
+- fork repo,
 - pip install -r requirements.txt.
-- Run streamlit run QuestionAnswering.py 
+- run: streamlit run QuestionAnswering.py 
 
 
 ![image](https://user-images.githubusercontent.com/67911055/194767573-3ef3cab8-275a-4ad9-98cd-07b5e2d8dd3b.png)
