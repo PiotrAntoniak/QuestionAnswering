@@ -15,7 +15,7 @@
 ![image](https://user-images.githubusercontent.com/67911055/194767385-58f641df-b53c-4d8c-9f3a-d33bc16cc444.png)
 ### Single Document Question Answering:
 ![image](https://user-images.githubusercontent.com/67911055/194767412-c590e916-5cd5-4727-8ea7-051140e3e9c9.png)
-### Multiple Documents Question ANswering:
+### Multiple Documents Question Answering:
 #### Landing page:
 ![image](https://user-images.githubusercontent.com/67911055/194767544-951f343a-569e-4872-9945-49c8d94b7070.png)
 #### First run:
