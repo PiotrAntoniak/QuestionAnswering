@@ -5,7 +5,7 @@ import time
 st.sidebar.markdown("# Single Document")
 st.markdown("# Single Document question answering")
 
-st.markdown(""""
+st.markdown("""
             This tab is able to answer your question by using a single pdf or docx document. 
             Just drag it below and type in your question. The procedure is optimized so asking a second 
             question with the same document will be way faster than the first one!
