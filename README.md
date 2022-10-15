@@ -20,7 +20,7 @@
 ![image](https://user-images.githubusercontent.com/67911055/194767544-951f343a-569e-4872-9945-49c8d94b7070.png)
 #### First run:
 ![image](https://user-images.githubusercontent.com/67911055/194767461-c17fcc20-7d9c-49ed-9475-b22e62b60f76.png)
-#### Subssequent runs:
+#### Subsequent runs:
 ![image](https://user-images.githubusercontent.com/67911055/194767475-95c2c007-2b77-47cd-ab29-fcf628786d15.png)
 ![image](https://user-images.githubusercontent.com/67911055/194767487-a551f122-1f01-4662-aab9-fc483bae40bd.png)
 
