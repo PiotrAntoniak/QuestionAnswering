@@ -6,6 +6,15 @@
 - pip install -r requirements.txt.
 - run: streamlit run QuestionAnswering.py 
 
+## CURRENT CAPABILITIES:
+- use wikipedia to page to answer question,
+- use a single document (.pdf, .docx) to answer questions,
+- utilize all previously used documents and documents dump to answer questions.
+
+## TODO:
+- add support for audio,
+- add support for youtube videos.
+
 
 
 ## Current usage:
@@ -25,6 +34,3 @@
 ![image](https://user-images.githubusercontent.com/67911055/194767487-a551f122-1f01-4662-aab9-fc483bae40bd.png)
 
 
-## TODO:
-- add support for audio,
-- add support for youtube videos.
