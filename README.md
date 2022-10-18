@@ -27,5 +27,4 @@
 
 ## TODO:
 - add support for audio,
-- add support for youtube videos,
-- integrete dialogue model that can chat about document.
+- add support for youtube videos.
