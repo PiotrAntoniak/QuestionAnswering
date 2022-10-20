@@ -1,5 +1,5 @@
 # QuestionAnswering
- question asnwering with webbrowser GUI
+ question answering with webbrowser GUI
 
 ### Steps to make it work:
 - fork repo,
