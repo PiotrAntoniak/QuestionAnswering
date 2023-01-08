@@ -9,12 +9,8 @@
 ## CURRENT CAPABILITIES:
 - use wikipedia to page to answer question,
 - use a single document (.pdf, .docx) to answer questions,
-- utilize all previously used documents and documents dump to answer questions.
-
-## TODO:
-- add support for audio,
-- add support for youtube videos.
-
+- utilize all previously used documents, documents dump and audio files to answer questions,
+- use youtube videos to answer questions.
 
 
 ## Current usage:
@@ -32,5 +28,7 @@
 #### Subsequent runs:
 ![image](https://user-images.githubusercontent.com/67911055/194767475-95c2c007-2b77-47cd-ab29-fcf628786d15.png)
 ![image](https://user-images.githubusercontent.com/67911055/194767487-a551f122-1f01-4662-aab9-fc483bae40bd.png)
+### Youtube Videos Question Answering:
+![image](https://user-images.githubusercontent.com/67911055/211217174-12203623-5900-4325-b7df-096ae3367572.png)
 
 
