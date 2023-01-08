@@ -18,6 +18,7 @@ import os
 from datetime import datetime
 from pdfminer.high_level import extract_text as extract_text_pdf
 import docx2txt
+import whisper
 
 @st.cache(allow_output_mutation=True, 
           hash_funcs={tokenizers.Tokenizer: lambda _: None, 
@@ -35,9 +36,14 @@ def load_models():
     else:
         pipe = pipeline("question-answering",model_ans,tokenizer =tokenizer_ans)
     
-    return tokenizer, tokenizer_ans, model, model_ans, pipe
+    whisper_model = whisper.load_model("medium")
+    return tokenizer, tokenizer_ans, model, model_ans, pipe, whisper_model
 
-tokenizer, tokenizer_ans, model, model_ans, pipe = load_models()
+tokenizer, tokenizer_ans, model, model_ans, pipe, whisper_model = load_models()
+
+def transcribe_video(path,whisper_model=whisper_model):
+    text = whisper_model.transcribe(path)
+    return text["text"]
 
 def cls_pooling(model_output):
     return model_output.last_hidden_state[:,0]
@@ -58,15 +64,15 @@ def encode_docs(docs,maxlen = 64, stride = 32):
     embeddings = []
     spans = []
     file_names = []
-    doc_name, text = docs
+    file_name, raw_text = docs
         
-    text = text.split(" ")
+    text = raw_text.split(" ")
     if len(text) < maxlen:
         text = " ".join(text)
         
         encoded_input.append(tokenizer(text, return_tensors='pt', truncation = True).to(device))
         spans.append(text)
-        file_names.append(doc_name)
+        file_names.append(file_name)
 
     else:
         num_iters = int(len(text)/maxlen)+1
@@ -83,7 +89,7 @@ def encode_docs(docs,maxlen = 64, stride = 32):
 
             encoded_input.append(tokenizer(temp_text, return_tensors='pt', truncation = True).to(device))
             spans.append(temp_text)
-            file_names.append(doc_name)
+            file_names.append(file_name)
 
     with torch.no_grad():
         for i,encoded in tqdm(enumerate(encoded_input)): 
@@ -92,7 +98,7 @@ def encode_docs(docs,maxlen = 64, stride = 32):
     
     embeddings = np.float32(torch.stack(embeddings).transpose(0, 1).cpu())
     
-    return embeddings, spans, file_names
+    return embeddings, spans, file_names, raw_text
 
 def clean_text(text):
     text = text.replace("\n","")
@@ -105,6 +111,9 @@ def extract_saved_text(path):
         return extract_text_pdf(path)
     elif path.endswith(".docx"):
         return docx2txt.process(path)
+    elif path.endswith(".mp4"):
+        text, _ = transcribe_video(path,whisper_model=whisper_model)
+        return text
     else:
         return None
           
@@ -136,7 +145,8 @@ def create_output(query,query_emb,doc_emb,doc_text, file_names):
         if probs[i] > 0.1 or (i < 3 and probs[i] > 0.05): #generate answers for more likely passages but no less than 2
             QA = {'question':query,'context':passage}
             ans = pipe(QA)
-            probabilities = """P(aIp): {}, P(aIp,q): {}, P(pIq): {}""".format(round(ans["score"],4), round(ans["score"]*probs[i],4), round(probs[i],4))
+            probabilities = """P(aIp): {}, P(aIp,q): {}, P(pIq): {}""".format(round(ans["score"],4), 
+                                                round(ans["score"]*probs[i],4), round(probs[i],4))
             passage = passage.replace(str(ans["answer"]),str(ans["answer"]).upper()) 
             table["Passage"].append(passage)
             table["Answer"].append(str(ans["answer"]).upper())
@@ -162,20 +172,21 @@ def save_metadata(metadata):
     with open('metadata.json', 'w') as f:
         json.dump(metadata, f)
 
-def save_text(meta_key,doc_name,text):
+def save_text(meta_key,file_name,text):
     if meta_key not in os.listdir("docs_text"):
         os.mkdir("docs_text/{}".format(meta_key))
-        with open("docs_text/{}/{}.txt".format(meta_key,doc_name),"w+",encoding ="utf-8") as f:
+        with open("docs_text/{}/{}.txt".format(meta_key,file_name),"w+",encoding ="utf-8") as f:
             f.write(text)
             f.close()
 
-def check_log_history(query,doc_name,text,metadata=None):
+def check_log_history(query,file_name,text,metadata=None):
     #check if query was asked for the same document. 
     #If true then recover it (also checks if answer was saved)
     if metadata is None:
         metadata = load_metadata()
+    
     meta_key = str(hashlib.sha256(text.encode()).hexdigest()) #this will 'always' be unique
-    q_a = str(hashlib.sha256(str([query,doc_name]).encode()).hexdigest())+".csv" #this one will help retrieving answer
+    q_a = str(hashlib.sha256(str([query,file_name]).encode()).hexdigest())+".csv" #this one will help retrieving answer
     
     if meta_key in metadata.keys() and meta_key in os.listdir("HISTORY"):
         if q_a in metadata[meta_key].keys():
@@ -183,10 +194,10 @@ def check_log_history(query,doc_name,text,metadata=None):
     
     current_time = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
     metadata.update({meta_key:{q_a:{"query":query,
-                                    "doc_name":doc_name,
+                                    "file_name":file_name,
                                     "time":current_time}}})
     if "merge" not in query:
-        save_text(meta_key,doc_name,text) #because why not
+        save_text(meta_key,file_name,text) #because why not
     save_metadata(metadata) 
     return q_a, False
 

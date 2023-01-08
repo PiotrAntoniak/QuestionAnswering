@@ -12,18 +12,18 @@ import hashlib
 from dpr import fragmentation
 import streamlit as st
 
-def check_if_encoded(doc_name):
-    doc_name = "emb_"+doc_name+".npy"
-    if doc_name in os.listdir("single_doc"):
+def check_if_encoded(file_name):
+    file_name = "emb_"+file_name+".npy"
+    if file_name in os.listdir("single_doc"):
         return True
     return False
 
-def merge_update_metadata(meta_key,query,doc_name,metadata):
+def merge_update_metadata(meta_key,query,file_name,metadata):
     #note that the file was used to create new emb.py and is now encoded
     current_time = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    q_a = str(hashlib.sha256(str([query,doc_name]).encode()).hexdigest())
+    q_a = str(hashlib.sha256(str([query,file_name]).encode()).hexdigest())
     metadata.update({meta_key:{q_a:{"query":query,
-                                    "doc_name":doc_name,
+                                    "file_name":file_name,
                                     "time":current_time}}})
     return metadata
 
@@ -36,17 +36,18 @@ def create_new_merge(use_docs_dump=True):
     if use_docs_dump:
         st.write("please wait, processing "+str(len(os.listdir("docs_dump")))+" documents")
         my_bar = st.progress(0)
-        for i,doc_name in enumerate(os.listdir("docs_dump")):
+        for i,file_name in enumerate(os.listdir("docs_dump")):
             my_bar.progress(i)
-            text = core.extract_saved_text("docs_dump/"+doc_name)
-            print(text[:10])
+            text = core.extract_saved_text("docs_dump/"+file_name)
+            
             if text is not None:
                 meta_key = str(hashlib.sha256(text.encode()).hexdigest())
                 if meta_key not in metadata_keys:
-                    doc_emb, spans, file_names = core.encode_docs((doc_name,text),maxlen = 64, stride = 32)
-                    singledoc.save_encoded(doc_emb, spans, file_names,doc_name+".npy")
-                    metadata = merge_update_metadata(meta_key,"merge",doc_name,metadata)
-                    core.save_text(meta_key,doc_name,text)
+                    print(meta_key)
+                    doc_emb, spans, file_names,text = core.encode_docs((file_name,text),maxlen = 64, stride = 32)
+                    singledoc.save_encoded(doc_emb, spans, file_names,file_name+".npy",text)
+                    metadata = merge_update_metadata(meta_key,"merge",file_name,metadata)
+                    core.save_text(meta_key,file_name,text)
         
     metadata.update({"last_update":datetime.now().strftime("%d-%m-%Y %H:%M:%S")})
     core.save_metadata(metadata)
@@ -56,8 +57,8 @@ def create_new_merge(use_docs_dump=True):
     files_names = []
     
     #read all encoded docs
-    for doc_name in tqdm(os.listdir("single_doc")):
-        doc_emb,doc_text,file_names = singledoc.load_encoded(doc_name)
+    for file_name in tqdm(os.listdir("single_doc")):
+        doc_emb,doc_text,file_names,text = singledoc.load_encoded(file_name)
         files_names.extend(file_names)
         spans.extend(doc_text)
         embs.append(doc_emb)
@@ -90,9 +91,9 @@ def predict(query,rerun_merge=False,use_docs_dump=True,use_kmeans = False):
     
     return df
 
-def get_answer(query,doc_name,rerun_merge,use_kmeans):
-    doc_name = str(hashlib.sha256(doc_name.encode()).hexdigest()) #cant really have a date as text so ...
-    path,flag = core.check_log_history(query,doc_name,"merged, kmeans: "+str(use_kmeans))
+def get_answer(query,file_name,rerun_merge,use_kmeans):
+    file_name = str(hashlib.sha256(file_name.encode()).hexdigest()) #cant really have a date as text so ...
+    path,flag = core.check_log_history(query,file_name,"merged, kmeans: "+str(use_kmeans))
     if not flag:
          df = predict(query,rerun_merge,use_kmeans=use_kmeans)
          df.to_csv("HISTORY/{}".format(path),index=False)
