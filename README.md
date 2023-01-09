@@ -31,4 +31,5 @@
 ### Youtube Videos Question Answering:
 ![image](https://user-images.githubusercontent.com/67911055/211217174-12203623-5900-4325-b7df-096ae3367572.png)
 
-
+## TODO:
+### Add possibility to ask GPT to answer the question given retrieved text
