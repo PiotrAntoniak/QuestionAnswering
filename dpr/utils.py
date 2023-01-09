@@ -15,7 +15,7 @@ def get_lastupdate():
          return core.load_metadata()["last_update"], True
 
 def create_dirs():
-    for needed_dir in ["HISTORY","single_doc","merged_docs","docs_dump","docs_text"]:
+    for needed_dir in ["HISTORY","single_doc","merged_docs","docs_dump","docs_text","youtube_videos"]:
         if needed_dir not in os.listdir():
             os.mkdir(needed_dir)
     if "clusters" not in os.listdir("merged_docs"):
