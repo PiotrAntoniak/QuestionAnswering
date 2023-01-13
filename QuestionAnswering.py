@@ -1,7 +1,10 @@
 #landing page
 import streamlit as st
+import openai
 st.sidebar.markdown("# Question Answering")
 st.markdown("# Question Answering from Documents using Deep Passage Retrieval")
+open_ai_key = st.text_input("Please provide you OpenAI api key")
+openai.api_key = open_ai_key
 st.markdown("""
             On the left you can see three tabs to choose from:
             - Wikipedia Demo,
@@ -24,3 +27,6 @@ st.markdown("""
             
             Enjoy!            
             """)
+
+
+  

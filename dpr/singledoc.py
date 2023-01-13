@@ -31,7 +31,7 @@ def predict(query,text,file_name):
     if check_if_encoded(file_name):
         doc_emb,spans,file_names,text = load_encoded(file_name+".npy")
     else:
-        doc_emb, spans, file_names,text = core.encode_docs((file_name,text),maxlen = 64, stride = 32)
+        doc_emb, spans, file_names,text = core.encode_docs((file_name,text),maxlen = 128, stride = 64)
         save_encoded(doc_emb, spans, file_names,file_name+".npy",text)
     
     query_emb = core.encode_query(query)

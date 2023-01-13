@@ -31,7 +31,7 @@ m_info = utils.merged_info()
 s_info = utils.single_info()
 
 st.write("""Without feeding new document, you can ask questions and they will be answered using 
-         ~{} spans (each has ~120 characters) taking roughly {}GB of space created
+         ~{} spans (each has ~240 characters) taking roughly {}GB of space created
          from {} unique documents.""".format(m_info[0],m_info[1],s_info[0]))
 
 #rerun_merge asks whether recalcualte embeddings for multiple docs QA

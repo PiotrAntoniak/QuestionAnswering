@@ -4,8 +4,7 @@ Functions used in other modules. As the name suggests, they are core functions.
 import numpy as np
 import hashlib
 import torch
-from transformers import pipeline
-from transformers import AutoTokenizer, AutoModel, AutoModelForQuestionAnswering
+from transformers import AutoTokenizer, AutoModel
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 import tokenizers
 from tqdm import tqdm
@@ -19,27 +18,43 @@ from datetime import datetime
 from pdfminer.high_level import extract_text as extract_text_pdf
 import docx2txt
 import whisper
+import openai
+import re
 
 @st.cache(allow_output_mutation=True, 
           hash_funcs={tokenizers.Tokenizer: lambda _: None, 
           tokenizers.AddedToken: lambda _: None})
+
 def load_models():
     #loads models
     m_emb = "sentence-transformers/multi-qa-mpnet-base-dot-v1"
     tokenizer = AutoTokenizer.from_pretrained(m_emb)
     model = AutoModel.from_pretrained(m_emb).to(device).eval()
-    m_ans = "deepset/roberta-base-squad2"
-    tokenizer_ans = AutoTokenizer.from_pretrained(m_ans)
-    model_ans = AutoModelForQuestionAnswering.from_pretrained(m_ans).to(device).eval()
-    if device == 'cuda:0':
-        pipe = pipeline("question-answering",model_ans,tokenizer =tokenizer_ans,device = 0)
-    else:
-        pipe = pipeline("question-answering",model_ans,tokenizer =tokenizer_ans)
-    
-    whisper_model = whisper.load_model("medium")
-    return tokenizer, tokenizer_ans, model, model_ans, pipe, whisper_model
 
-tokenizer, tokenizer_ans, model, model_ans, pipe, whisper_model = load_models()
+    whisper_model = whisper.load_model("base")
+    
+    return tokenizer,  model, whisper_model
+
+def pipe(question,text_span):
+    response = openai.Completion.create(
+        model="text-davinci-003",
+        prompt="""You are an assistant that answers questions using given text. 
+        If the answer cannot be recovered from the text, 
+        you say that its impossible to answer the question.\n
+        The text is:'{}'\nAnd the question is:'{}'\nWhat is your answer?""".format(text_span,question),
+        temperature=0.9,
+        max_tokens=150,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0.6,
+        stop=[" Human:", " AI:"],
+        n=1,)
+    
+    return response
+
+
+
+tokenizer, model,  whisper_model = load_models()
 
 def transcribe_video(path,whisper_model=whisper_model):
     text = whisper_model.transcribe(path)
@@ -58,18 +73,18 @@ def encode_query(query):
 
     return embeddings.cpu()
 
-def encode_docs(docs,maxlen = 64, stride = 32):
+def encode_docs(docs,maxlen = 128, stride = 64):
     #splits text into overlapping spans and encodes them using transformer loaded above
     encoded_input = []
     embeddings = []
     spans = []
     file_names = []
     file_name, raw_text = docs
-        
+          
     text = raw_text.split(" ")
     if len(text) < maxlen:
         text = " ".join(text)
-        
+          
         encoded_input.append(tokenizer(text, return_tensors='pt', truncation = True).to(device))
         spans.append(text)
         file_names.append(file_name)
@@ -86,7 +101,7 @@ def encode_docs(docs,maxlen = 64, stride = 32):
             else:
                 temp_text = " ".join(text[(i-1)*maxlen:(i)*maxlen][-stride:] + text[i*maxlen:(i+1)*maxlen])
                 temp_text = " ".join(temp_text.split(" ")[1:-1])
-
+            
             encoded_input.append(tokenizer(temp_text, return_tensors='pt', truncation = True).to(device))
             spans.append(temp_text)
             file_names.append(file_name)
@@ -104,6 +119,8 @@ def clean_text(text):
     text = text.replace("\n","")
     text = text.replace(" . "," ")
     text = text.replace("\r", " ")
+#    text = re.sub('[^A-Za-z0-9]+', ' ', text)
+    text = text.replace("  ", " ")
     return text
     
 def extract_saved_text(path):
@@ -112,7 +129,7 @@ def extract_saved_text(path):
     elif path.endswith(".docx"):
         return docx2txt.process(path)
     elif path.endswith(".mp4"):
-        text, _ = transcribe_video(path,whisper_model=whisper_model)
+        text = transcribe_video(path,whisper_model=whisper_model)
         return text
     else:
         return None
@@ -143,13 +160,11 @@ def create_output(query,query_emb,doc_emb,doc_text, file_names):
         passage = clean_text(passage)
         
         if probs[i] > 0.1 or (i < 3 and probs[i] > 0.05): #generate answers for more likely passages but no less than 2
-            QA = {'question':query,'context':passage}
-            ans = pipe(QA)
-            probabilities = """P(aIp): {}, P(aIp,q): {}, P(pIq): {}""".format(round(ans["score"],4), 
-                                                round(ans["score"]*probs[i],4), round(probs[i],4))
-            passage = passage.replace(str(ans["answer"]),str(ans["answer"]).upper()) 
+            GPT_response = pipe(query,passage)
+            print(GPT_response['choices'][0]["text"])
+            probabilities = """P(pIq): {}""".format(round(probs[i],4)) 
             table["Passage"].append(passage)
-            table["Answer"].append(str(ans["answer"]).upper())
+            table["Answer"].append(GPT_response['choices'][0]["text"].upper())
             table["Probabilities"].append(probabilities)
             table["Source"].append(names)
         else:
@@ -159,6 +174,7 @@ def create_output(query,query_emb,doc_emb,doc_text, file_names):
             table["Source"].append(names)
             
     df = pd.DataFrame(table)
+    
     return df
 
 def load_metadata():
@@ -210,8 +226,8 @@ def build_oneans(row):
 def build_table(df):
     #build final markdown table to be displayed by streamlit
     table = """
-|Answer      |Passage |Probabilities     | Source|
-| :---:       |    :---:   |    :---:   |  :---:   |"""
+|Answer|Passage|Probabilities|Source|
+|:---:|:---:|:---:|:---:|"""
     
     for i in range(len(df)):
         table+= build_oneans(tuple(df.loc[i].values))
