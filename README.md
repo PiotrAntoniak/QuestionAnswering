@@ -11,6 +11,8 @@
 - use a single document (.pdf, .docx) to answer questions,
 - utilize all previously used documents, documents dump and audio files to answer questions,
 - use youtube videos to answer questions.
+## TODO:
+- Add possibility to ask GPT to answer the question given retrieved text
 
 
 ## Current usage:
@@ -30,5 +32,4 @@
 ![image](https://user-images.githubusercontent.com/67911055/194767487-a551f122-1f01-4662-aab9-fc483bae40bd.png)
 ### Youtube Videos Question Answering:
 ![image](https://user-images.githubusercontent.com/67911055/211217174-12203623-5900-4325-b7df-096ae3367572.png)
-
 
