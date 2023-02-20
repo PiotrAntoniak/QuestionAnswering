@@ -19,7 +19,8 @@ from pdfminer.high_level import extract_text as extract_text_pdf
 import docx2txt
 import whisper
 import openai
-import re
+import streamlit as st
+
 
 @st.cache(allow_output_mutation=True, 
           hash_funcs={tokenizers.Tokenizer: lambda _: None, 
@@ -40,8 +41,10 @@ def pipe(question,text_span):
         model="text-davinci-003",
         prompt="""You are an assistant that answers questions using given text. 
         If the answer cannot be recovered from the text, 
-        you say that its impossible to answer the question.\n
-        The text is:'{}'\nAnd the question is:'{}'\nWhat is your answer?""".format(text_span,question),
+        you say that its impossible to answer the question. Output is in markdown format.
+        Do not use links.\n Please be as precise as possible. Your answers is supposed to be very short.
+        The text is: '{}'\n
+        And the question is:'{}'""".format(text_span,question),
         temperature=0.9,
         max_tokens=150,
         top_p=1,
@@ -144,7 +147,6 @@ def extract_data(feed):
     data = ''.join(data)
     return clean_text(data)
 
-
 def create_output(query,query_emb,doc_emb,doc_text, file_names):
     #builds pandas df that is later used to generate final output 
     doc_emb = doc_emb.reshape(-1, 768)
@@ -159,7 +161,7 @@ def create_output(query,query_emb,doc_emb,doc_text, file_names):
     for i, (passage, _, names) in enumerate(doc_score_pairs[:k]):
         passage = clean_text(passage)
         
-        if probs[i] > 0.1 or (i < 3 and probs[i] > 0.05): #generate answers for more likely passages but no less than 2
+        if probs[i] > 0.15 or i < 1 : #generate answers for more likely passages but no less than 2
             GPT_response = pipe(query,passage)
             print(GPT_response['choices'][0]["text"])
             probabilities = """P(pIq): {}""".format(round(probs[i],4)) 
@@ -167,7 +169,8 @@ def create_output(query,query_emb,doc_emb,doc_text, file_names):
             table["Answer"].append(GPT_response['choices'][0]["text"].upper())
             table["Probabilities"].append(probabilities)
             table["Source"].append(names)
-        else:
+        elif False:
+            #add functionally that allows to specify moire generations
             table["Passage"].append(passage)
             table["Answer"].append("no_answer_calculated")
             table["Probabilities"].append("P(pIq): {}".format(round(probs[i],4)))
@@ -203,7 +206,7 @@ def check_log_history(query,file_name,text,metadata=None):
     
     meta_key = str(hashlib.sha256(text.encode()).hexdigest()) #this will 'always' be unique
     q_a = str(hashlib.sha256(str([query,file_name]).encode()).hexdigest())+".csv" #this one will help retrieving answer
-    
+    print(meta_key)
     if meta_key in metadata.keys() and meta_key in os.listdir("HISTORY"):
         if q_a in metadata[meta_key].keys():
             return q_a, True
@@ -217,18 +220,12 @@ def check_log_history(query,file_name,text,metadata=None):
     save_metadata(metadata) 
     return q_a, False
 
-def build_oneans(row):
-    answer,passage,probs,source = row
-    one_ans = """
-|{}|{}|{}|{}|""".format(answer,passage,probs,source,)
-    return one_ans
 
 def build_table(df):
-    #build final markdown table to be displayed by streamlit
-    table = """
-|Answer|Passage|Probabilities|Source|
-|:---:|:---:|:---:|:---:|"""
-    
     for i in range(len(df)):
-        table+= build_oneans(tuple(df.loc[i].values))
-    return table
+        st.write("The answer is:", df.Answer.values[i])
+        st.write("It comes from:", df.Source.values[i])
+        st.write("The probability model assigned to the passage is:", df.Probabilities.values[i])
+        st.write("And the passage is:", df.Passage.values[i])
+    
+

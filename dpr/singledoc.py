@@ -41,8 +41,7 @@ def predict(query,text,file_name):
 
 def get_answer(query,data,file_name):
     text = core.extract_data(data)
-    #check if the same question was already asked uing the same document
-    #if yes, just recover the answer
+
     path,flag = core.check_log_history(query,file_name,text)
     
     if not flag:

@@ -20,8 +20,8 @@ if st.button('Predict'):
     if data is not None:
         doc_name = data.name
         st.write("Using file: "+doc_name+" to answer your question")
-        start = time.time()
+        #start = time.time()
         results = singledoc.get_answer(query,data,doc_name)
-        st.write("It took: "+ str(time.time()-start) +" seconds to get the answer")
-        st.markdown(core.build_table(results))
+        #st.write("It took: "+ str(time.time()-start) +" seconds to get the answer")
+        core.build_table(results)
 

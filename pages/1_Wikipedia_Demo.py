@@ -19,7 +19,7 @@ wikipage = st.text_input("Which wikipedia page would you like to consult?")
 
 if st.button('Predict'):
     st.write("Using: "+wikipage+" page to answer your question")
-    start = time.time()
+    #start = time.time()
     results = wiki.get_answer(query,wikipage)
-    st.write("It took: "+ str(time.time()-start) +" seconds to get the answer")
-    st.markdown(core.build_table(results))
+    #st.write("It took: "+ str(time.time()-start) +" seconds to get the answer")
+    core.build_table(results)

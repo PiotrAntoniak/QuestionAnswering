@@ -47,7 +47,7 @@ if st.button('Predict'):
         st.write("This may take a while.")
     else:
         st.write("Using endoded docs prior to: "+doc_name+" to answer your question")
-    start = time.time()
+    #start = time.time()
     results = mergeddoc.get_answer(query,doc_name,rerun_merge,use_kmeans)
-    st.write("It took: "+ str(time.time()-start) +" seconds to get the answer")
-    st.markdown(core.build_table(results))
+    #st.write("It took: "+ str(time.time()-start) +" seconds to get the answer")
+    core.build_table(results)
