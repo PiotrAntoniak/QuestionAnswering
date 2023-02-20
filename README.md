@@ -11,8 +11,12 @@
 - use a single document (.pdf, .docx) to answer questions,
 - utilize all previously used documents, documents dump and audio files to answer questions,
 - use youtube videos to answer questions.
+- GPT3 is used to answer questions - thus the program requires valid OpenAI api key
 ## TODO:
-- Add possibility to ask GPT to answer the question given retrieved text
+- replace markdown tables with html tables (more robust),
+- add ability to remember api key (by using os.environ),
+- figure out probababilites of GPT generated text,
+- allow user to choose different models.
 
 
 ## Current usage:
