@@ -13,10 +13,9 @@
 - use youtube videos to answer questions.
 - GPT3 is used to answer questions - thus the program requires valid OpenAI api key
 ## TODO:
-- replace markdown tables with html tables (more robust),
-- add ability to remember api key (by using os.environ),
-- figure out probababilites of GPT generated text,
+- add ability to remember api key 
 - allow user to choose different models.
+- create page with previous questions 
 
 
 ## Current usage:
