@@ -7,8 +7,8 @@
 - run: streamlit run QuestionAnswering.py 
 
 ## CURRENT CAPABILITIES:
-- use wikipedia to page to answer question,
-- use a single document (.pdf, .docx) to answer questions,
+- use wikipedia's page to answer question,
+- use a single document (.pdf, .docx, .mp4) to answer questions,
 - utilize all previously used documents, documents dump and audio files to answer questions,
 - use youtube videos to answer questions.
 - GPT3 is used to answer questions - thus the program requires valid OpenAI api key
